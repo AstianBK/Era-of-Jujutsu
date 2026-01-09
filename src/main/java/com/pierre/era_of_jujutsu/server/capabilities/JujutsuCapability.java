@@ -6,10 +6,15 @@ import com.pierre.era_of_jujutsu.common.network.PacketHandler;
 import com.pierre.era_of_jujutsu.common.network.message.PacketSyncCapability;
 import com.pierre.era_of_jujutsu.common.register.EJAttribute;
 import com.pierre.era_of_jujutsu.common.register.EJCapabilities;
+import com.pierre.era_of_jujutsu.common.register.EJTechniques;
 import com.pierre.era_of_jujutsu.server.AttributeEvent;
 import com.pierre.era_of_jujutsu.server.api.IJujutsu;
+import com.pierre.era_of_jujutsu.server.cursed_techniques.CEReinforcement;
+import com.pierre.era_of_jujutsu.server.cursed_techniques.CursedTechniques;
+import com.pierre.era_of_jujutsu.server.cursed_techniques.TechniquesAbstract;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,6 +31,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class JujutsuCapability implements IJujutsu {
@@ -46,9 +53,9 @@ public class JujutsuCapability implements IJujutsu {
     public int levelCE = 0;
     public int maxCe = 0;
     public int currentExp = 0;
-    public ServerBossEvent hudBar = new ServerBossEvent(Component.literal(grade.name()+"CE" ), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS);
     public ServerBossEvent hudXp = new ServerBossEvent(Component.literal(grade.name()+"CE" ), BossEvent.BossBarColor.BLUE, BossEvent.BossBarOverlay.PROGRESS);
-
+    public Map<String, CursedTechniques> techniquesCE = new HashMap<>();
+    public Map<String, Integer> techniquesActive = new HashMap<>();
     public static JujutsuCapability get(Player player){
         return EJCapabilities.getJujutsuCap(player, JujutsuCapability.class);
     }
@@ -79,15 +86,10 @@ public class JujutsuCapability implements IJujutsu {
                 if(!hudXp.getPlayers().contains((ServerPlayer) player)){
                     hudXp.addPlayer((ServerPlayer) player);
                 }
-                float exp = this.levelCE>1 ? (float) this.currentExp-(float) Util.getRequestExpForNextLevel(levelCE) : this.currentExp;
+                float exp = this.levelCE>1 ? (float) this.currentExp-(float) Util.getRequestExpForNextLevel(levelCE-1) : this.currentExp;
                 float nextExp = this.levelCE>1 ? (float) Util.getRequestExpForNextLevel(levelCE) -(float) Util.getRequestExpForNextLevel(levelCE-1) : (float) Util.getRequestExpForNextLevel(levelCE) ;
                 hudXp.setProgress(exp/nextExp);
-                hudXp.setName(Component.literal("Experience :"+this.currentExp));
-                if(!hudBar.getPlayers().contains((ServerPlayer) player)){
-                    hudBar.addPlayer((ServerPlayer) player);
-                }
-                hudBar.setProgress((float) this.getCE() /(float) this.maxCe);
-                hudBar.setName(Component.literal("GRADE "+grade.name()+" (level "+this.levelCE+") "+" - CE"));
+                hudXp.setName(Component.literal("Level :"+levelCE+" Experience :"+this.currentExp));
             }
         }
     }
@@ -109,9 +111,7 @@ public class JujutsuCapability implements IJujutsu {
         this.currentExp = old.currentExp;
         this.maxCe = old.maxCe;
         this.firstJoin = old.firstJoin;
-        old.hudBar.setVisible(false);
-        old.hudBar.setProgress(0);
-        old.hudBar.removeAllPlayers();
+
         old.hudXp.setVisible(false);
         old.hudXp.setProgress(0);
         old.hudXp.removeAllPlayers();
@@ -131,7 +131,6 @@ public class JujutsuCapability implements IJujutsu {
                 this.levelCE = 1;
                 this.maxCe = 100;
                 this.currentExp = 0;
-
             }
         }
         this.isDirty = true;
@@ -140,6 +139,9 @@ public class JujutsuCapability implements IJujutsu {
         this.levelCE=Math.min(10,this.levelCE+1);
         if (levelCE%2==0){
             this.modifyStatForLevel();
+        }
+        if(levelCE>5){
+            this.techniquesCE.put("ce_reinforcement",new CEReinforcement());
         }
         this.isDirty = true;
     }
@@ -177,6 +179,14 @@ public class JujutsuCapability implements IJujutsu {
             nbt.putString("grade",this.grade.name());
             nbt.putInt("level",this.levelCE);
             nbt.putInt("currentExp",this.currentExp);
+            nbt.putInt("maxCe",this.maxCe);
+            ListTag list = new ListTag();
+            this.techniquesCE.forEach((key,value) ->{
+                CompoundTag tag = new CompoundTag();
+                tag.putString("name",key);
+                list.add(tag);
+            });
+            nbt.put("techniques",list);
         }
         return nbt;
     }
@@ -190,6 +200,16 @@ public class JujutsuCapability implements IJujutsu {
             this.grade = Grade.valueOf(nbt.getString("grade"));
             this.levelCE = nbt.getInt("level");
             this.currentExp = nbt.getInt("currentExp");
+            this.maxCe = nbt.getInt("maxCe");
+            if(nbt.contains("techniques")){
+                Map<String,CursedTechniques> map = new HashMap<>();
+                ListTag list = nbt.getList("techniques",10);
+                for (int i = 0 ; i<list.size() ; i++){
+                    String id = list.getCompound(i).getString("name");
+                    map.put(id, (CursedTechniques) EJTechniques.getTechniqueForName(id));
+                }
+                this.techniquesCE = map;
+            }
         }else {
             this.grade = Grade.MONKEY;
             this.isSensibilityCE = false;

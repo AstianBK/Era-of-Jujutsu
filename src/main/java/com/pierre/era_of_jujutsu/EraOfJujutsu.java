@@ -5,6 +5,7 @@ import com.pierre.era_of_jujutsu.common.command.EJCommand;
 import com.pierre.era_of_jujutsu.common.network.PacketHandler;
 import com.pierre.era_of_jujutsu.common.register.EJAttribute;
 import com.pierre.era_of_jujutsu.common.register.EJCapabilities;
+import com.pierre.era_of_jujutsu.common.register.EJTechniques;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.food.FoodProperties;
@@ -44,7 +45,7 @@ public class EraOfJujutsu
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         MinecraftForge.EVENT_BUS.register(this);
-
+        EJTechniques.initialize();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
         modEventBus.addListener(EJCapabilities::registerCapabilities);
         PacketHandler.registerMessages();

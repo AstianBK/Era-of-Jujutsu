@@ -11,6 +11,6 @@ public class EJAttribute {
     public static Attribute CURSED_ENERGY = new RangedAttribute("ce",0.0F,0.0F,Double.MAX_VALUE).setSyncable(true);
 
     public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, EraOfJujutsu.MODID);
-    public static RegistryObject<Attribute> BLOOD_VALUE= ATTRIBUTES.register("ce",()-> CURSED_ENERGY);
+    public static RegistryObject<Attribute> CURSED_ENERGY_VALUE= ATTRIBUTES.register("ce",()-> CURSED_ENERGY);
 
 }

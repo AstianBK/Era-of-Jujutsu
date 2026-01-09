@@ -3,9 +3,11 @@ package com.pierre.era_of_jujutsu.common.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.pierre.era_of_jujutsu.EraOfJujutsu;
 import com.pierre.era_of_jujutsu.common.Grade;
 import com.pierre.era_of_jujutsu.common.Util;
 import com.pierre.era_of_jujutsu.server.capabilities.JujutsuCapability;
+import com.pierre.era_of_jujutsu.server.cursed_techniques.CEReinforcement;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -34,14 +36,15 @@ public class EJCommand {
                                                                                     cap.levelCE = 1;
                                                                                     cap.grade = Grade.FOUR;
                                                                                     cap.maxCe = 100;
+                                                                                    cap.hudXp.setVisible(true);
+                                                                                    cap.hudXp.addPlayer(target);
+
                                                                                 }
                                                                                 if(!value){
                                                                                     cap.grade = Grade.MONKEY;
                                                                                     cap.maxCe = 0;
                                                                                     cap.hudXp.setVisible(false);
                                                                                     cap.hudXp.removeAllPlayers();
-                                                                                    cap.hudBar.setVisible(false);
-                                                                                    cap.hudBar.removeAllPlayers();
                                                                                 }
                                                                                 cap.isDirty = true;
 
@@ -64,6 +67,12 @@ public class EJCommand {
                                                                 cap.currentExp = Util.getRequestExpForNextLevel(Math.max(value-1,0));
                                                                 cap.maxCe = 100;
                                                                 cap.isDirty = true;
+                                                                if(cap.levelCE>5){
+                                                                    EraOfJujutsu.LOGGER.debug("techniques pre "+cap.techniquesCE);
+                                                                    cap.techniquesCE.put("ce_reinforcement",new CEReinforcement());
+                                                                    EraOfJujutsu.LOGGER.debug("techniques post "+cap.techniquesCE);
+
+                                                                }
                                                             }
                                                             return 1;
                                                         })

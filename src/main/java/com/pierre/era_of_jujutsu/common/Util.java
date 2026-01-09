@@ -16,6 +16,13 @@ public class Util {
         JujutsuCapability cap = JujutsuCapability.get(player);
         return cap!=null && cap.canSeeCE();
     }
+    public static double getMaxCE(Player player){
+        JujutsuCapability cap = JujutsuCapability.get(player);
+        if(cap!=null){
+            return cap.maxCe;
+        }
+        return 1;
+    }
     public static int getRequestExpForNextLevel(int levelCE){
         switch (levelCE){
             case 1 ->{

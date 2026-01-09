@@ -12,7 +12,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
@@ -38,7 +42,25 @@ public class ModBusEvent {
             }
         }
     }
-
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void renderGui(RenderGuiOverlayEvent event){
+        if(event.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type()){
+            event.setCanceled(true);
+        }
+        if (event.getOverlay() == VanillaGuiOverlay.ARMOR_LEVEL.type()){
+            event.setCanceled(true);
+        }
+        if (event.getOverlay() == VanillaGuiOverlay.FOOD_LEVEL.type()){
+            event.setCanceled(true);
+        }
+        if (event.getOverlay() == VanillaGuiOverlay.EXPERIENCE_BAR.type()){
+            event.setCanceled(true);
+        }
+        if (event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()){
+            event.setCanceled(true);
+        }
+    }
     @SubscribeEvent
     public static void giveExp(PlayerXpEvent.XpChange event){
         Player player = event.getEntity();
